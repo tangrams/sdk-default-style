@@ -21,7 +21,7 @@ styles:
 
 textures:
     mapzen_icon_library:
-        url: images/bubble-wrap@2x.png
+        url: images/sdk-default@2x.png
         #url: https://raw.githubusercontent.com/tangrams/bubble-wrap/gh-pages/images/bubble-wrap%402x.png
         filtering: mipmap
         sprites:
