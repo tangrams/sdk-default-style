@@ -376,125 +376,43 @@
             gui.domElement.parentNode.style.zIndex = 10000;
             window.gui = gui;
 
-            // Language selector
-            var langs = {
+            // Routing selector
+            var sdk_directions = {
                 '(default)': false,
-                'العربية (Arabic)': 'ar',
-                '中文 (Chinese)': 'zh',
-                'English': 'en',
-                'français (French)': 'fr',
-                'Русский (Russian)': 'ru',
-                'español (Spanish)': 'es',
-                'বাংলা (Bengali)': 'bn',
-                'Deutsch (German)': 'de',
-                'ελληνικά (Greek)': 'gr',
-                'हिन्दी (Hindi)': 'hi',
-                'Bahasa Indonesia (Indonesian)': 'id',
-                'italiano (Italian)': 'it',
-                '日本語 (Japanese)': 'ja',
-                '한국어 (Korean)': 'ko',
-                'Português (Portuguese)': 'pt',
-                'Türkçe (Turkish)': 'tr',
-                'Tiếng Việt (Vietnamese)': 'vi'
-            };
-            // use query language, else default to English
-            gui.language = query.language || false;
-            gui.add(gui, 'language', langs).onChange(function(value) {
-                scene.config.global.ux_language = value;
-                scene.updateConfig();
-                //window.location.search = 'language=' + value;
-            });
-            gui.fallback_lang = query.language || false;
-            gui.fallback_button = gui.add(gui, 'fallback_lang', langs).onChange(function(value) {
-                scene.config.global.ux_language_fallback = value;
-                scene.updateConfig();
-                //window.location.search = 'language=' + value;
-            });
-            gui.fallback_button.name('lang fallback');
-
-
-            // So many themes
-            var all_theme_imports = { color: null, detail: null, label: null };
-
-            function update_scene_with_themes() {
-                //console.log( all_theme_imports );
-
-                // construct the import array
-                themes_as_array = [tg_baseScene];
-
-                if( all_theme_imports.color ) {
-                    themes_as_array.push( all_theme_imports.color );
-                }
-                if( all_theme_imports.label ) {
-                    themes_as_array.push( all_theme_imports.label );
-                }
-
-                scene.load({ import: themes_as_array, global: tg_global });
-                //console.log( scene.config );
-                scene.updateConfig();
-                //scene.rebuild();
-            }
-
-
-            // Labels selector
-            gui.label = query.label || 5;
-            gui.add(gui, 'label', 0, 11).step(1).onChange(function(value) {
-                var import_theme = 'themes/label-'+ value + '.yaml'
-                all_theme_imports.label = import_theme;
-
-                update_scene_with_themes();
-
-                //window.location.search = 'language=' + value;
-            });
-
-
-            // Transit selector
-            var transit_overlay = {
-                '(default)': false,
-                'Show': true,
-                'Hide': false
+                'Hide': false,
+                'Car': 'car',
+                'Transit': 'transit',
+                'Bike': 'bike'
             };
             // use transit ux, else default to false
-            gui.transit_overlay = query.transit_overlay || false;
-            gui.transit_button = gui.add(gui, 'transit_overlay', transit_overlay).onChange(function(value) {
-                scene.config.global.sdk_transit_overlay = (value === 'true' || value === true); // dat.gui passes a string
-                if (value === 'true' || value === true) {
-                    scene.config.global.sdk_road_shields = false;
+            gui.sdk_directions = query.sdk_directions || false;
+            gui.directions_button = gui.add(gui, 'sdk_directions', sdk_directions).onChange(function(value) {
+                if( value === 'bike' ) {
+                    scene.config.sources.mz_route_line = {};
+                    scene.config.sources.mz_route_line_transit = {};
+                    scene.config.sources.mz_dash_line = {};
+                    scene.config.sources.mz_route_line_bicycle = { type: 'GeoJSON', url: 'https://gist.githubusercontent.com/nvkelso/8a066359dbe7e773926fe01c44c793d4/raw/d32bbf3221a8d8ef47cf22de706768a92ed645d9/map.geojson' }
+                    scene.config.global.sdk_bike_network_overlay = false;
+                } else if( value === 'transit') {
+                    scene.config.sources.mz_route_line = {};
+                    scene.config.sources.mz_route_line_transit = { type: 'GeoJSON', url: 'https://gist.githubusercontent.com/anonymous/71ae88cbc6d62c4d141ecd6a61060050/raw/2254bbc18243f5dc609e663a580c9412a7447936/map.geojson' }
+                    scene.config.sources.mz_dash_line = { type: 'GeoJSON', url: 'https://gist.githubusercontent.com/anonymous/d73b851c64c3e5fbfc2754aa32f44c10/raw/938ae435776e176919c4797bed1465a92e403ef3/map.geojson' }
+                    scene.config.sources.mz_route_line_bicycle = {};
+                } else if( value === 'car') {
+                    scene.config.sources.mz_route_line = { type: 'GeoJSON', url: 'https://gist.githubusercontent.com/anonymous/9a610ebda6fe4be7bccc/raw/8d217e43f2412d48d01534ba115f1e42dac72e68/map.geojson' }
+                    scene.config.sources.mz_route_line_transit = {}
+                    scene.config.sources.mz_dash_line = {}
+                    scene.config.sources.mz_route_line_bicycle = {};
                 } else {
-                    if( scene.config.global.text_visible_roads ) {
-                        scene.config.global.sdk_road_shields = true;
-                    }
+                    scene.config.sources.mz_route_line = {};
+                    scene.config.sources.mz_route_line_transit = {};
+                    scene.config.sources.mz_dash_line = {};
+                    scene.config.sources.mz_route_line_bicycle = {}
+                    scene.config.global.sdk_bike_network_overlay = true;
                 }
                 scene.updateConfig();
             });
-            gui.transit_button.name('transit');
-
-            // Building extrusion selector
-            var building_3d = {
-                '(default)': true,
-                'Yes': true,
-                'No': false
-            };
-            // use transit ux, else default to false
-            gui.building_3d = query.building_3d || true;
-            gui.building_button = gui.add(gui, 'building_3d', building_3d).onChange(function(value) {
-                scene.config.global.sdk_building_extrude = (value === 'true' || value === true); // dat.gui passes a string
-                scene.updateConfig();
-            });
-            gui.building_button.name( '3D buildings' );
-//
-//             // Animation selector
-//             var animated = {
-//                 '(default)': true,
-//                 'Yes': true,
-//                 'No': false
-//             };
-//             gui.animated = query.animated || true;
-//             gui.add(gui, 'animated', animated).onChange(function(value) {
-//                 scene.config.global.sdk_animated = (value === 'true' || value === true); // dat.gui passes a string
-//                 scene.updateConfig();
-//                 //window.location.search = 'animated=' + value;
-//             });
+            gui.directions_button.name('directions');
 
             // Enable/disable interactivity for all features
             var interactive_label = 'interactive';
